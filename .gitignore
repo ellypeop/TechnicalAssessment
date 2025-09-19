@@ -17,3 +17,6 @@ Thumbs.db
 
 data/raw/
 
+# Generated reports
+/*.md
+
