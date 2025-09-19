@@ -25,15 +25,11 @@ SERPAPI_API_KEY=...      # optional, enables Google via SerpAPI
 
 The agent uses the RFP file solely to extract the questions/criteria. Answers and citations are derived from web sources only.
 
-You can either provide the RFP path explicitly or use the special phrase.
-
 Examples:
 ```bash
-# Using the special phrase (defaults to the Samsic RFP path if not provided)
+python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --max-results 8 --out bid.md
+# or use the special phrase
 python -m research_agent.cli "Write a bid for the RFP stored in file" --out bid.md
-
-# Explicit RFP path
-python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --max-results 8 --out bid_samsic.md
 ```
 
 Options:
@@ -41,6 +37,22 @@ Options:
 - `--out PATH`: output markdown path (default `report.md`)
 - `--model NAME`: override OpenAI model (default `gpt-4o-mini`)
 - `--rfp-path PATH`: path to the RFP DOCX (required unless using the special phrase)
+- `--versioned/--no-versioned`: save timestamped versions under `reports/` and update `reports/bid_latest.md`
+
+### Versioned outputs and diffs
+- Save a timestamped bid and update the latest copy:
+```bash
+python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --versioned
+```
+- Diff the two most recent bids:
+  - PowerShell:
+    ```powershell
+    ./scripts/diff_latest_bids.ps1
+    ```
+  - Bash:
+    ```bash
+    bash scripts/diff_latest_bids.sh
+    ```
 
 ### What the agent does
 1. Parses the RFP DOCX and extracts important criteria/questions using heuristics (evaluation criteria, SLAs, KPIs, technical/commercial/compliance sections, numbered lists, and tables).
