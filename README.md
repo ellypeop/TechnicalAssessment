@@ -128,12 +128,45 @@ Produced a new schema.py file
 - Hasn't used the tender.io website at all for its response
 
 It's still treating headings as requirements, incorrect data filters treat dates as items, the web search is built from noisy lines and not a schema, the prompt does not specify to ignore headings
-Pushing current version to github and implementing code changes provided by ChatGPT5
+Pushing current version to github and implementing code changes provided by ChatGPT5 (changes made to agent.py, llm.py, rfp.py)
 
+### Version 14:48pm
+
+- The questions are better however its web search explanation is note detailed "This requirement is directly stated in the RFP items." and does not research tender.io
+- The prompt erroneously guides the LLM to not use its own prior knowledge
+
+Cursor Prompt to refactor the codebase so it effectively researches the web, including searching tender.io information, to provide a response:
+
+"refactor the code base to address the issue that the agent does not do a web search on tender.io (and other general website when nessecary) to provide an informed response to the questions generated in the report"
+
+Need to refactor again after this as the prompt is still ineffective
+
+### Version 14:59pm
+
+- Still stating "This requirement is directly stated in the RFP items." so need to ammend the prompt to be less restrictive, is also still not using tender.io to respond.
+
+Refactoring so the LLM.py file is less restrictive and priortisies searching tender.io before providing a response.
+
+### Version 15:07pm
+
+- The questions are somewhat improved however the answers are generic and in the voice of Samsic UK not tender.io. Need to refactor again to emphasise that responses must include web searches into tender.io
+- should also be noted that the websearches keep brining up the same chinese website - https://zhidao.baidu.com/ - this may be what was causing issue as I hadn't stated mytender.io instead saying tender.io
+
+
+### Version 15:20pm
+
+- The responses are mytender.io specific however they are still fairly general with the agent not exploring directory roots of the mytender.io website for more detailed responses. The questions are much better and have succesfully extracted the meaningful aspects of the RFP.
+
+## Final Thoughts
+
+- To improve the model response still we'd want to enable the agent to use all webpages within mytender.io to formulate a response
+- We'd also want to be able to succesfully balance the agents ability to use general websites as the groundwork for a response with the mytender.io website being used to answer specific details related to mytender.io
+- Once the above can be succesfully implemented/balanced - explore how using different models can improve output
+- General refaxctoring of the prompt schema and exploring other tools the agent can use to modify the response would also be beneficial
 
 ## Research Agent (tender.io Bid Assistant)
 
-A bid-writing assistant for tender.io. It parses an RFP document (DOCX), performs targeted web research, and produces a concise Markdown bid draft with explanations and inline citations to web sources. Keys are loaded from `.env`.
+A bid-writing assistant for tender.io. It parses an RFP document (DOCX), performs targeted web research on tender.io only, and produces a concise Markdown bid draft with explanations and inline citations to tender.io sources. Keys are loaded from `.env`.
 
 ### Setup
 
@@ -156,46 +189,27 @@ SERPAPI_API_KEY=...      # optional, enables Google via SerpAPI
 
 ### Usage (Bid mode)
 
-The agent uses the RFP file solely to extract the questions/criteria. Answers and citations are derived from web sources only.
+The agent uses the RFP file solely to extract the questions/criteria. Answers and citations are derived from tender.io web sources only.
 
 Examples:
 ```bash
-python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --max-results 8 --out bid.md
-# or use the special phrase
-python -m research_agent.cli "Write a bid for the RFP stored in file" --out bid.md
+python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --versioned
 ```
 
 Options:
-- `--max-results INT`: number of web search results to consider (default 8)
+- `--max-results INT`: number of queries for broader seeding (still tender.io-only)
 - `--out PATH`: output markdown path (default `report.md`)
 - `--model NAME`: override OpenAI model (default `gpt-4o-mini`)
 - `--rfp-path PATH`: path to the RFP DOCX (required unless using the special phrase)
 - `--versioned/--no-versioned`: save timestamped versions under `reports/` and update `reports/bid_latest.md`
 
-### Versioned outputs and diffs
-- Save a timestamped bid and update the latest copy:
-```bash
-python -m research_agent.cli --rfp-path "data/raw/RFP - Bid Management Systems - Samsic UK.docx" --versioned
-```
-- Diff the two most recent bids:
-  - PowerShell:
-    ```powershell
-    ./scripts/diff_latest_bids.ps1
-    ```
-  - Bash:
-    ```bash
-    bash scripts/diff_latest_bids.sh
-    ```
-
 ### What the agent does
-1. Parses the RFP DOCX and extracts important criteria/questions using heuristics (evaluation criteria, SLAs, KPIs, technical/commercial/compliance sections, numbered lists, and tables).
-2. Crafts a web search query guided by top RFP items and gathers evidence from the web only.
-3. Produces a Markdown bid draft with, for each RFP item:
-   - A concise answer tailored to tender.io's capabilities.
-   - A short explanation describing what web research was performed and why it supports the answer.
-   - Inline citations like [1], [2], etc., with a final "Sources" list mapping numbers to URLs.
+1. Parses the RFP DOCX and extracts actionable supplier requirements with preprocessing to ignore headings, dates, and boilerplate.
+2. Categorises requirements to a supplier-response schema (capabilities, integrations, users/roles, security, commercials, delivery, support, evidence, submission, partnership).
+3. Searches tender.io only (site:tender.io) with per-item queries plus a small seed of tender.io-focused queries to gather evidence.
+4. Produces a Markdown bid draft with for each requirement: a concise response, an explanation of the tender.io research used, and inline citations like [1], [2] with a Sources list of tender.io URLs.
 
 ### Notes
 - `.env` and `data/raw/` are ignored by git. Do not commit keys or RFPs.
-- If a site blocks requests, the page may be skipped; the agent continues with remaining sources.
+- If a tender.io page blocks requests, it may be skipped; the agent continues with remaining tender.io sources.
 - Supported local formats for RFP: DOCX (others can be added on request).
