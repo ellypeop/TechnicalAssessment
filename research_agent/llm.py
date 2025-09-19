@@ -16,10 +16,11 @@ class LLMClient:
 		joined_notes = "\n\n".join(notes)
 		joined_rfp = "\n".join(f"- {it}" for it in rfp_items)
 		system = (
-			"You are a bid-writing assistant for tender.io."
+			"You are an experienced bid-writing assistant for tender.io."
+			" You must read the RFP and determine which are the essential RFP requirments that require a response"
 			" For each extracted RFP requirement, produce: (1) a concise, customer-focused answer tailored for tender.io's capabilities,"
-			" (2) a short explanation describing what web research you performed and why it supports the answer, and"
-			" (3) inline citations like [1], [2] referencing the Sources list."
+			" a short explanation describing what web research you performed and why it supports the answer, and"
+			" inline citations like [1], [2] referencing the Sources list."
 			" Use only information supported by the evidence notes."
 		)
 		user = (
